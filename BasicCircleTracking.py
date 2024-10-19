@@ -29,7 +29,7 @@ while True:
 
     ##Using HoughCircles to detect circle in frame, set min distance at 100 due to wanting to only detect one circle
     circles = cv.HoughCircles(blurFrame, cv.HOUGH_GRADIENT, 1.1, 100, 
-                              param1 = 100, param2 = 55, minRadius = 5, maxRadius = 400)
+                              param1 = 100, param2 = 60, minRadius = 5, maxRadius = 400)
     
     #Condition that draws circle around the detected circle, and also chooses the best circle to track
     if circles is not None:
