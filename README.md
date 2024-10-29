@@ -1,3 +1,3 @@
 # BeerPongAnalysis
 
-Here is my first experience with amchine learning and open cv
+Here is my first experience with Yolov11 and open cv
