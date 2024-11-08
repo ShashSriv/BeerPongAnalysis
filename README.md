@@ -3,8 +3,14 @@
 I am tired of constantly missing the last cup in a game of beer pong, that last cup is the bane of my existence. Thus, I decided I needed a training method to perfect my shot, what better way to do that then with computer visualization? This is an in progress project where the end goal is to create a sideview shot predictor for a pong ball going into a classic red-solo cup. 
 
 This project is currently being written in python with the utilization of openCV and YOLOv11 newest object detention model. At its current state it can predict path or travel for a white pong ball, along with simultaneously using YOLOvll pretrained model to recognize cups.
+## Trajectory Analysis
+![Trajectory Detection](READMEgifs/CupDetection.gif)
+
 ## Next Steps
-Coming in the future, I will be training the Yolo Model to recognize Red-Solo cups specifically, and recognize it as a goal status for the pong ball
+Coming in the future, I will be training the Yolo Model to recognize Red-Solo cups specifically, but until then I am implementing cup detection within the program based on pretrained models
+
+## Cup Detection
+![Cup Detection](READMEgifs/BallTrajectory.gif)
 
 ## Installation
 

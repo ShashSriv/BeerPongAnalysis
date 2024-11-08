@@ -11,6 +11,10 @@ dt = 1/fps
 prev_position = None
 vx, vy = 0, 0
 
+#Message to be displayed
+message = "No Buckets!"
+message_cooldown = 0
+
 #Load Yolo Model 11
 model = YOLO("yolo11n.pt")
 
@@ -24,6 +28,40 @@ def draw_trajectory(frame, x0, y0, vx, vy, time_steps=60):
     #Draw the trajectory
     for i in range(1, len(points)):
         cv.line(frame, points[i-1], points[i], (0, 255, 0), 2)
+    return points
+
+def check_top_edge_intersection(prediction_line, box):
+    # Unpack bounding box coordinates
+    x1, y1, x2, y2 = box
+
+    # Define the top edge of the bounding box
+    top_edge_start = (x1, y1)
+    top_edge_end = (x2, y1)
+
+    # Iterate over pairs of consecutive points in prediction_line
+    for i in range(1, len(prediction_line)):
+        # Define the line segment for each pair of consecutive points
+        start_point = prediction_line[i - 1]
+        end_point = prediction_line[i]
+
+        # Check for intersection with the top edge only
+        if lines_intersect(start_point, end_point, top_edge_start, top_edge_end):
+            return True  # Intersection found with top edge
+
+    return False  # No intersection with top edge
+
+def lines_intersect(a1, a2, b1, b2):
+    # Using orientation method to detect intersection
+    def orientation(p, q, r):
+        return (q[1] - p[1]) * (r[0] - q[0]) - (q[0] - p[0]) * (r[1] - q[1])
+
+    o1 = orientation(a1, a2, b1)
+    o2 = orientation(a1, a2, b2)
+    o3 = orientation(b1, b2, a1)
+    o4 = orientation(b1, b2, a2)
+
+    # Check if the points are on opposite sides of each line segment
+    return o1 * o2 < 0 and o3 * o4 < 0
 
 ## Opening the webcam on laptop
 videoCapture = cv.VideoCapture(0, cv.CAP_DSHOW)
@@ -56,6 +94,16 @@ while True:
             cv.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
             label = f"{class_name}: {confidence:.2f}"
             cv.putText(frame, label, (x1, y1 - 10), cv.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+
+            if (class_name == "cup" or class_name == "wine glass"):
+                cup_detected = True
+                cup_box = (x1, y1, x2, y2)
+                cv.putText(frame, "Cup Detected", (10, 50), cv.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2)
+            else:
+                cup_detected = False
+                cup_box = None
+                
+                
 
     ## Convert frame to HSV color space
     hsvFrame = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
@@ -92,14 +140,30 @@ while True:
         t = 1.0
         x_pred = int(center[0] + vx*t)
         y_pred = int(center[1] + vy*t + 0.5*g*t**2)
-        print(x_pred)
-        print(y_pred)
+        #print(x_pred)
+        #print(y_pred)
 
         #Draw circle using predicted values
         cv.circle(frame, (x_pred, y_pred), 10, (0, 255, 0), 3)
 
         #Draw prediction arc
-        draw_trajectory(frame, center[0], center[1], vx, vy)
+        prediction_line = draw_trajectory(frame, center[0], center[1], vx, vy)
+
+        # Check for intersection with cup box IF CUP IS DETECTED
+        message = "No Buckets!" if message_cooldown == 0 else message
+        
+        if cup_detected and cup_box is not None:
+            if check_top_edge_intersection(prediction_line, cup_box):
+                message = "Buckets!"
+                message_cooldown = 60
+
+        #Decrement message cooldown
+        if message_cooldown > 0:
+            message_cooldown -= 1
+
+
+        # Constantly display the messages
+        #cv.putText(frame, message, (10, 50), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
 
         #Update previous position
         prev_position = center
